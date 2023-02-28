@@ -22,10 +22,11 @@ struct pfs_archive
     byte *hdr = nullptr;
     size_t hdr_size;
     byte index_hash[CryptoPP::SHA1::DIGESTSIZE];
-    void add_file(filesystem::directory_entry pth, const string &name)
+    void add_file(filesystem::directory_entry pth, string name)
     {
+        ranges::replace(name, '/', '\\');
         cout << format("add file {}", name) << endl;
-        file_list.push_back({0, pth.file_size(), 0, name, pth});
+        file_list.push_back({0, pth.file_size(), 0, move(name), pth});
     }
 
     /*
@@ -89,8 +90,7 @@ struct pfs_archive
             size_t bytes_read;
             while (bytes_read = fread(buf, 1, 128 << 20, f2))
             {
-                size_t i = 0;
-                for (; i < bytes_read; i += 40)
+                for (size_t i = 0; i < bytes_read; i += 40)
                 {
                     ((uint64_t *)&buf[i])[0] ^= ((uint64_t *)key)[0];
                     ((uint64_t *)&buf[i])[1] ^= ((uint64_t *)key)[1];
@@ -114,8 +114,7 @@ int main(int argc, const char *argv[])
 {
     if (argc < 3)
     {
-        cerr << format("usage: {} target_file [...args]",
-                       filesystem::path(argv[0]).filename().string())
+        cerr << format("usage: {} target_file [...args]", filesystem::path(argv[0]).filename().string())
              << endl;
         return 1;
     }
@@ -127,10 +126,7 @@ int main(int argc, const char *argv[])
         {
             cout << format("traversing directory {}", arg) << endl;
             auto base_path = filesystem::path(arg).parent_path();
-            for (auto &subfile :
-                 filesystem::recursive_directory_iterator(arg) |
-                     views::filter([](auto &n)
-                                   { return n.path().extension() == ".ast"; }))
+            for (auto &subfile : filesystem::recursive_directory_iterator(arg))
             {
                 auto rel_path = filesystem::relative(subfile.path(), base_path);
                 archive.add_file(subfile, rel_path.string());
@@ -138,9 +134,8 @@ int main(int argc, const char *argv[])
         }
         else if (filesystem::is_regular_file(arg))
         {
-            if (auto pth = filesystem::path(arg); pth.extension() == ".ast")
-                archive.add_file(filesystem::directory_entry(pth),
-                                 pth.filename().generic_string());
+            auto pth = filesystem::path(arg);
+            archive.add_file(filesystem::directory_entry(pth), pth.filename().string());
         }
         else
         {

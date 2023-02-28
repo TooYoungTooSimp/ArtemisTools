@@ -1,0 +1,27 @@
+name: build
+on: push
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: vcpkg plan
+        run: vcpkg install --dry-run --x-json > vcpkg.plan
+
+      - uses: actions/cache@v3
+        with:
+          path: /usr/local/share/vcpkg/installed
+          key: vcpkg-${{ hashFiles('vcpkg.plan') }}
+
+      - name: Configure
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build
+        run: cmake --build build
+
+      - uses: actions/upload-artifact@v3
+        with:
+          path: |
+              build/mkpfs
+              build/ast_checker
