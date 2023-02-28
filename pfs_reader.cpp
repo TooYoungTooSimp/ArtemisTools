@@ -81,7 +81,6 @@ bool parse_pfs(const char *pth)
             {
                 buf[i] ^= index_hash[i % sizeof(index_hash)];
             }
-            _CrtDbgBreak();
         }
     }
     delete[] index;
@@ -90,42 +89,5 @@ bool parse_pfs(const char *pth)
 
 int main()
 {
-    parse_pfs("D:/UserData/Downloads/¥µ¥¯¥é¥Î¿Ì ¨D™Ñ¤ÎÉ­¤ÎÏÂ¤òši¤à¨D "
-              "Í¨³£°æ/sakuranotoki.pfs");
     return 0;
 }
-
-/*
-
- ArcFile OpenPf (ArcView file, int version, Encoding encoding)
-        {
-            uint index_size = file.View.ReadUInt32 (3);
-            int count = file.View.ReadInt32 (7);
-            if (!IsSaneCount (count) || 7L + index_size > file.MaxOffset)
-                return null;
-            var index = file.View.ReadBytes (7, index_size);
-            int index_offset = 4;
-            var dir = new List<Entry> (count);
-            for (int i = 0; i < count; ++i)
-            {
-                int name_length = index.ToInt32 (index_offset);
-                var name = encoding.GetString (index, index_offset+4,
- name_length); index_offset += name_length + 8; var entry = Create<Entry>
- (name); entry.Offset = index.ToUInt32 (index_offset); entry.Size   =
- index.ToUInt32 (index_offset+4); if (!entry.CheckPlacement (file.MaxOffset))
-                    return null;
-                index_offset += 8;
-                dir.Add (entry);
-            }
-            if (version != 8 && version != 9 && version != 4 && version != 5)
-                return new ArcFile (file, this, dir);
-
-            // key calculated for archive versions 4, 5, 8 and 9
-            using (var sha1 = SHA1.Create())
-            {
-                var key = sha1.ComputeHash (index);
-                return new PfsArchive (file, this, dir, key);
-            }
-        }
-
-*/
