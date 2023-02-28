@@ -5,6 +5,12 @@
 #include <filesystem>
 #include <iostream>
 #include <ranges>
+
+#ifndef __cpp_lib_format
+#define FMT_HEADER_ONLY
+#include <fmt/format.h>
+#endif
+
 using namespace std;
 #define byte unsigned char
 
@@ -61,7 +67,8 @@ bool parse_pfs(const char *pth)
     cout << format("index_offset={}", idx_reader.offset) << endl;
     if (1)
         sort(dir.begin(), dir.end(),
-             [](auto lhs, auto rhs) { return lhs.offset < rhs.offset; });
+             [](auto lhs, auto rhs)
+             { return lhs.offset < rhs.offset; });
     for (auto &hdr : dir)
     {
         cout << hdr.name << format(" offset:{} sz:{}", hdr.offset, hdr.size)

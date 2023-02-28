@@ -3,6 +3,10 @@
   "version": "0.0.1",
   "dependencies": [
     "lua",
-    "cryptopp"
+    "cryptopp",
+    {
+      "name": "fmt",
+      "platform": "!windows"
+    }
   ]
 }

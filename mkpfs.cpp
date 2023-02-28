@@ -6,6 +6,12 @@
 #include <iostream>
 #include <numeric>
 #include <ranges>
+
+#ifndef __cpp_lib_format
+#define FMT_HEADER_ONLY
+#include <fmt/format.h>
+#endif
+
 using namespace std;
 #define byte uint8_t
 struct pfs_archive
