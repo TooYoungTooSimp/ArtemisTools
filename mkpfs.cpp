@@ -58,12 +58,13 @@ struct pfs_archive
         int file_offset = hdr_size;
         for (auto &f : file_list)
         {
+            hdrio.write<int32_t>(f.name.size());
+            hdrio.write(f.name.data(), f.name.size());
+
+            f.hdr_pos = hdrio.offset;
             f.offset = file_offset;
             file_offset += f.size;
 
-            hdrio.write<int32_t>(f.name.size());
-            hdrio.write(f.name.data(), f.name.size());
-            f.hdr_pos = hdrio.offset;
             hdrio.write<int32_t>(0);
             hdrio.write<int32_t>(f.offset);
             hdrio.write<int32_t>(f.size);
@@ -126,7 +127,6 @@ int main(int argc, const char *argv[])
         return 1;
     }
     pfs_archive archive;
-    bool flag = true;
     for (auto arg : span(argv, argc) | views::drop(2))
     {
         if (filesystem::is_directory(arg))
@@ -151,5 +151,5 @@ int main(int argc, const char *argv[])
     }
     archive.make_index();
     archive.write_pfs(argv[1]);
-    return !flag;
+    return 0;
 }
