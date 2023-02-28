@@ -14,7 +14,7 @@ jobs:
 
       - uses: actions/cache@v3
         with:
-          path: /usr/local/share/vcpkg/installed
+          path: /usr/local/share/vcpkg/packages
           key: vcpkg-${{ hashFiles('vcpkg.plan') }}
 
       - name: Configure
