@@ -37,7 +37,7 @@ bool parse_pfs(const char *pth)
     if (memcmp(buf, "pf", 2))
         return false;
     auto pfsver = fio.read<char>() - '0';
-    cout << pfsver << endl;
+    cout << format("pfsver={}", pfsver) << endl;
     auto index_size = fio.read<int32_t>();
     cout << format("index_size={}", index_size) << endl;
 
@@ -45,9 +45,6 @@ bool parse_pfs(const char *pth)
     fio.read(index, index_size);
     MIO idx_reader{index};
 
-    static byte index_hash[CryptoPP::SHA1::DIGESTSIZE];
-    CryptoPP::SHA1 hash;
-    hash.CalculateDigest(index_hash, index, index_size);
     auto count = idx_reader.read<int32_t>();
     cout << count << endl;
     auto offset_tbl_size = sizeof(int32_t) * (1 + 2 * count + 2 + 1);
@@ -65,24 +62,21 @@ bool parse_pfs(const char *pth)
         f.name = move(name);
         dir.push_back(move(f));
     }
+    auto entry_count = idx_reader.read<int32_t>();
+    if (entry_count != count + 1)
+        return false;
     cout << format("index_offset={}", idx_reader.offset) << endl;
-    if (1)
-        sort(dir.begin(), dir.end(),
-             [](auto lhs, auto rhs)
-             { return lhs.offset < rhs.offset; });
+    sort(dir.begin(), dir.end(),
+         [](auto lhs, auto rhs)
+         { return lhs.offset < rhs.offset; });
+
+    static byte index_hash[CryptoPP::SHA1::DIGESTSIZE];
+    CryptoPP::SHA1 hash;
+    hash.CalculateDigest(index_hash, index, index_size);
+
     for (auto &hdr : dir)
-    {
-        cout << hdr.name << format(" offset:{} sz:{}", hdr.offset, hdr.size)
+        cout << format("{} offset:{} sz:{}", hdr.name, hdr.offset, hdr.size)
              << endl;
-        if (hdr.name.find(".ast") != string::npos)
-        {
-            fio.read(buf, 50, hdr.offset);
-            for (int i = 0; i < 50; i++)
-            {
-                buf[i] ^= index_hash[i % sizeof(index_hash)];
-            }
-        }
-    }
     delete[] index;
     return true;
 }
