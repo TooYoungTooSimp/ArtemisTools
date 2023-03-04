@@ -23,8 +23,14 @@ jobs:
       - name: Build
         run: cmake --build build
 
-      - uses: actions/upload-artifact@v3
-        with:
-          path: |
-              build/mkpfs
-              build/ast_checker
+      - name: Publish Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          assets=(build/mkpfs build/ast_checker)
+          for rel in $(gh release list | awk -F'\t' '{print$3}')
+          do
+            gh release delete $rel -y
+          done
+          git ls-remote --tags | awk '{print$2}' | xargs git push --delete origin || true
+          gh release create latest "${assets[@]}" -t "Latest Release"
